@@ -3,6 +3,8 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,7 +25,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const { register, isLoading } = useAuth()
+  const router = useRouter()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -41,15 +45,20 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!agreeToTerms) return
+    setError("")
 
-    setIsLoading(true)
+    const result = await register({
+      name: formData.fullName,
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+    })
 
-    // Simulate registration process
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log("Registration attempt:", formData)
-      // In a real app, this would handle user registration
-    }, 2000)
+    if (result.success) {
+      router.push("/")
+    } else {
+      setError(result.error || "Registration failed")
+    }
   }
 
   const isFormValid =
@@ -82,6 +91,10 @@ export default function RegisterPage() {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input

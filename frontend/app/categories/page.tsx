@@ -8,42 +8,42 @@ const categories = [
     name: "Engine Parts",
     icon: Engine,
     count: 245,
-    href: "/products?category=engine",
+    href: "/categories/engine",
     description: "Pistons, gaskets, belts, and engine components",
   },
   {
     name: "Brake System",
     icon: Disc,
     count: 189,
-    href: "/products?category=brakes",
+    href: "/categories/brakes",
     description: "Brake pads, rotors, calipers, and brake fluid",
   },
   {
     name: "Suspension",
     icon: Settings,
     count: 156,
-    href: "/products?category=suspension",
+    href: "/categories/suspension",
     description: "Shocks, struts, springs, and suspension components",
   },
   {
     name: "Electrical",
     icon: Zap,
     count: 203,
-    href: "/products?category=electrical",
+    href: "/categories/electrical",
     description: "Batteries, alternators, starters, and wiring",
   },
   {
     name: "Filters",
     icon: Filter,
     count: 134,
-    href: "/products?category=filters",
+    href: "/categories/filters",
     description: "Air filters, oil filters, fuel filters, and cabin filters",
   },
   {
     name: "Body Parts",
     icon: Car,
     count: 298,
-    href: "/products?category=body",
+    href: "/categories/body",
     description: "Bumpers, mirrors, lights, and exterior components",
   },
 ]
@@ -114,7 +114,7 @@ export default function CategoriesPage() {
             ].map((brand) => (
               <Link
                 key={brand}
-                href={`/products?make=${brand.toLowerCase()}`}
+                href={`/makes/${brand.toLowerCase()}`}
                 className="text-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
               >
                 <div className="text-sm font-medium text-gray-700 hover:text-blue-600">{brand}</div>

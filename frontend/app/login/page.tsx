@@ -3,6 +3,8 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,18 +19,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const { login, isLoading } = useAuth()
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setError("")
 
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log("Login attempt:", { email, password, rememberMe })
-      // In a real app, this would handle authentication
-    }, 2000)
+    const result = await login(email, password)
+
+    if (result.success) {
+      router.push("/")
+    } else {
+      setError(result.error || "Login failed")
+    }
   }
 
   return (
@@ -53,6 +58,10 @@ export default function LoginPage() {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
@@ -145,6 +154,12 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
+
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
+              <p className="text-xs text-blue-600">
+                <strong>Demo:</strong> Use admin@autoparts.tz / admin123 for admin access
+              </p>
+            </div>
           </CardContent>
 
           <CardFooter className="text-center">
@@ -157,7 +172,6 @@ export default function LoginPage() {
           </CardFooter>
         </Card>
 
-        {/* Additional Info */}
         <div className="mt-8 text-center">
           <p className="text-xs text-muted-foreground">
             By signing in, you agree to our{" "}
