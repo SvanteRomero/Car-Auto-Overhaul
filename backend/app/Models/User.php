@@ -17,7 +17,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'password',
         'full_name',
@@ -37,10 +37,60 @@ class User extends Authenticatable
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    /**
      * Get the orders for the user.
      */
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the product likes for the user.
+     */
+    public function productLikes()
+    {
+        return $this->hasMany(ProductLike::class);
+    }
+
+    /**
+     * Get the liked products for the user.
+     */
+    public function likedProducts()
+    {
+        return $this->belongsToMany(Product::class, 'product_likes');
+    }
+
+    /**
+     * Get the user events for analytics.
+     */
+    public function events()
+    {
+        return $this->hasMany(UserEvent::class);
+    }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if the user is a customer.
+     */
+    public function isCustomer()
+    {
+        return $this->role === 'customer';
     }
 }
