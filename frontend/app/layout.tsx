@@ -5,7 +5,6 @@ import "./globals.css"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { AuthProvider } from "@/contexts/auth-context"
-import { CartProvider } from "@/contexts/cart-context"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,11 +27,9 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <CartProvider>
-            <Header />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-          </CartProvider>
+          <Header />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>
