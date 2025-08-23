@@ -1,8 +1,9 @@
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? (window as any).location?.origin?.includes('localhost') 
-    ? 'http://127.0.0.1:8000/api' 
-    : 'http://127.0.0.1:8000/api'
-  : 'http://127.0.0.1:8000/api';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+});
 
 interface ApiResponse<T = any> {
   data?: T;
