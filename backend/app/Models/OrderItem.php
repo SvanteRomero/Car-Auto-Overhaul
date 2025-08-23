@@ -4,16 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CarMake extends Model
+class OrderItem extends Model
 {
     use HasFactory;
 
-    /**
-     * Get the models for the car make.
-     */
-    public function carModels()
+    public $timestamps = false;
+
+    protected $fillable = ['order_id', 'product_id', 'quantity', 'price'];
+
+    public function order(): BelongsTo
     {
-        return $this->hasMany(CarModel::class, 'make_id');
+        return $this->belongsTo(Order::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 }

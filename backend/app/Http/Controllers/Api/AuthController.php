@@ -16,45 +16,38 @@ class AuthController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
-        try {
-            $validated = $request->validate([
-                'full_name' => 'required|string|max:255',
-                'username' => 'required|string|max:255|unique:users',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:6|confirmed',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-            ]);
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+        ]);
 
-            $user = User::create([
-                'full_name' => $validated['full_name'],
-                'username' => $validated['username'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'phone' => $validated['phone'] ?? null,
-                'address' => $validated['address'] ?? null,
-                'role' => 'customer', // Default role
-            ]);
+        $user = User::create([
+            'full_name' => $validated['full_name'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'role' => 'customer', // Default role
+        ]);
 
-            $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token')->plainTextToken;
 
-            return response()->json([
-                'message' => 'User registered successfully',
-                'user' => [
-                    'id' => $user->id,
-                    'username' => $user->username,
-                    'email' => $user->email,
-                    'full_name' => $user->full_name,
-                    'role' => $user->role,
-                ],
-                'token' => $token
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Registration failed',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'full_name' => $user->full_name,
+                'role' => $user->role,
+            ],
+            'token' => $token
+        ], 201);
     }
 
     /**
@@ -62,42 +55,35 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
-        try {
-            $validated = $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
-            ]);
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-            $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', $validated['email'])->first();
 
-            if (!$user || !Hash::check($validated['password'], $user->password)) {
-                return response()->json([
-                    'message' => 'The provided credentials do not match our records.',
-                ], 401);
-            }
-
-            // Revoke existing tokens for security
-            $user->tokens()->delete();
-
-            $token = $user->createToken('api-token')->plainTextToken;
-
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
-                'message' => 'Login successful',
-                'user' => [
-                    'id' => $user->id,
-                    'username' => $user->username,
-                    'email' => $user->email,
-                    'full_name' => $user->full_name,
-                    'role' => $user->role,
-                ],
-                'token' => $token
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Login failed',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => 'The provided credentials do not match our records.',
+            ], 401);
         }
+
+        // Revoke existing tokens for security
+        $user->tokens()->delete();
+
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'full_name' => $user->full_name,
+                'role' => $user->role,
+            ],
+            'token' => $token
+        ], 200);
     }
 
     /**

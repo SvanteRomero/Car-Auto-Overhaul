@@ -15,32 +15,25 @@ class AnalyticsController extends Controller
      */
     public function logEvent(Request $request): JsonResponse
     {
-        try {
-            $validated = $request->validate([
-                'event_type' => 'required|string|max:255',
-                'metadata' => 'nullable|array',
-                'session_id' => 'nullable|string|max:255',
-            ]);
+        $validated = $request->validate([
+            'event_type' => 'required|string|max:255',
+            'metadata' => 'nullable|array',
+            'session_id' => 'nullable|string|max:255',
+        ]);
 
-            $event = UserEvent::create([
-                'user_id' => $request->user() ? $request->user()->id : null,
-                'event_type' => $validated['event_type'],
-                'metadata' => $validated['metadata'] ?? [],
-                'session_id' => $validated['session_id'] ?? null,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+        $event = UserEvent::create([
+            'user_id' => $request->user()?->id,
+            'event_type' => $validated['event_type'],
+            'metadata' => $validated['metadata'] ?? [],
+            'session_id' => $validated['session_id'] ?? null,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
-            return response()->json([
-                'message' => 'Event logged successfully',
-                'event_id' => $event->id
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'An error occurred while logging the event',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Event logged successfully',
+            'event_id' => $event->id
+        ], 201);
     }
 
     /**
