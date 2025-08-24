@@ -47,12 +47,12 @@ export default function RegisterPage() {
     if (!agreeToTerms) return
     setError("")
 
-    const result = await register({
-      name: formData.fullName,
-      username: formData.username,
-      email: formData.email,
-      password: formData.password,
-    })
+  const result = await register({
+    name: formData.fullName,
+    email: formData.email,
+    password: formData.password,
+    password_confirmation: formData.confirmPassword,
+  })
 
     if (result.success) {
       router.push("/")

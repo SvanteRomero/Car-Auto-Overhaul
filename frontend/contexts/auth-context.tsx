@@ -2,7 +2,9 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import api from '@/lib/api'; // <-- IMPORT OUR NEW API CLIENT
 
+// User interface remains the same
 interface User {
   id: string
   name: string
@@ -21,11 +23,12 @@ interface AuthContextType {
 }
 
 interface RegisterData {
-  name: string
-  username: string
-  email: string
-  password: string
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string; // <-- Add password confirmation
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -33,82 +36,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Check for existing session on mount
+  // This effect will run when the app loads to check if the user is already logged in
   useEffect(() => {
-    const savedUser = localStorage.getItem("autoparts_user")
-    if (savedUser) {
+    const fetchUser = async () => {
       try {
-        setUser(JSON.parse(savedUser))
+        const { data } = await api.get('/user');
+        setUser(data);
       } catch (error) {
-        localStorage.removeItem("autoparts_user")
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false)
+    };
+    fetchUser();
   }, [])
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true)
-
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Mock authentication logic
-    if (email === "admin@autoparts.tz" && password === "admin123") {
-      const adminUser: User = {
-        id: "admin-1",
-        name: "Admin User",
-        email: "admin@autoparts.tz",
-        role: "admin",
-      }
-      setUser(adminUser)
-      localStorage.setItem("autoparts_user", JSON.stringify(adminUser))
-      setIsLoading(false)
-      return { success: true }
-    } else if (email && password) {
-      // Mock customer login
-      const customerUser: User = {
-        id: "customer-1",
-        name: "John Doe",
-        email: email,
-        role: "customer",
-      }
-      setUser(customerUser)
-      localStorage.setItem("autoparts_user", JSON.stringify(customerUser))
-      setIsLoading(false)
-      return { success: true }
-    } else {
-      setIsLoading(false)
-      return { success: false, error: "Invalid email or password" }
+    setIsLoading(true);
+    try {
+      // First, get a CSRF cookie from Sanctum
+      await api.get('/sanctum/csrf-cookie');
+      
+      // Now, attempt to log in
+      const response = await api.post('/login', { email, password });
+      
+      // After login, fetch the user data
+      const { data: userData } = await api.get('/user');
+      setUser(userData);
+      
+      setIsLoading(false);
+      return { success: true };
+    } catch (error: any) {
+      setIsLoading(false);
+      return { success: false, error: error.response?.data?.message || "Login failed" };
     }
   }
 
   const register = async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true)
+    setIsLoading(true);
+    try {
+        await api.get('/sanctum/csrf-cookie');
+        await api.post('/register', data);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Mock registration logic
-    if (data.email && data.password && data.name) {
-      const newUser: User = {
-        id: `customer-${Date.now()}`,
-        name: data.name,
-        email: data.email,
-        role: "customer",
-      }
-      setUser(newUser)
-      localStorage.setItem("autoparts_user", JSON.stringify(newUser))
-      setIsLoading(false)
-      return { success: true }
-    } else {
-      setIsLoading(false)
-      return { success: false, error: "Please fill in all required fields" }
+        // After successful registration, automatically log the user in
+        const loginResult = await login(data.email, data.password);
+        return loginResult;
+    } catch (error: any) {
+        setIsLoading(false);
+        const errorMessages = error.response?.data;
+        // Format validation errors nicely
+        if (errorMessages && typeof errorMessages === 'object') {
+            return { success: false, error: Object.values(errorMessages).flat().join(' ') };
+        }
+        return { success: false, error: "Registration failed" };
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("autoparts_user")
+  const logout = async () => {
+    try {
+        await api.post('/logout');
+    } catch (error) {
+        console.error("Logout failed", error);
+    } finally {
+        setUser(null);
+    }
   }
 
   const value: AuthContextType = {
@@ -118,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     logout,
     isAuthenticated: !!user,
-    isAdmin: user?.role === "admin",
+    isAdmin: user?.role === 'admin',
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
