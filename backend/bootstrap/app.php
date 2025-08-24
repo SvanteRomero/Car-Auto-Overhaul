@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        //Admin alias
+        $middleware->alias([
+            'is_admin' => \App\Http\Middleware\IsAdmin::class,
+        ]);
+
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
@@ -33,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        // Handle expired or invalid tokens (e.g. Passport/JWT)
+        // Handle expired or invalid tokens
         $exceptions->render(function (UnauthorizedHttpException $e, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
