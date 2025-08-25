@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,109 +29,32 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Package, AlertTriangle, CheckCircle } from "lucide-react"
-
-// Mock products data for admin management
-const allProducts = [
-  {
-    id: 1,
-    name: "Premium Brake Pads Set",
-    price: 45000,
-    category: "Brake System",
-    stock: 25,
-    status: "active",
-    image: "/brake-pads-close-up.png",
-    sku: "BP-001",
-    createdAt: "2024-01-10",
-  },
-  {
-    id: 2,
-    name: "Engine Oil Filter",
-    price: 12000,
-    category: "Filters",
-    stock: 3,
-    status: "active",
-    image: "/oil-filter.png",
-    sku: "OF-002",
-    createdAt: "2024-01-09",
-  },
-  {
-    id: 3,
-    name: "Shock Absorber Front",
-    price: 85000,
-    category: "Suspension",
-    stock: 15,
-    status: "active",
-    image: "/shock-absorber.png",
-    sku: "SA-003",
-    createdAt: "2024-01-08",
-  },
-  {
-    id: 4,
-    name: "Car Battery 12V",
-    price: 120000,
-    category: "Electrical",
-    stock: 2,
-    status: "active",
-    image: "/car-battery.png",
-    sku: "CB-004",
-    createdAt: "2024-01-07",
-  },
-  {
-    id: 5,
-    name: "Air Filter Element",
-    price: 18000,
-    category: "Filters",
-    stock: 12,
-    status: "active",
-    image: "/air-filter.png",
-    sku: "AF-005",
-    createdAt: "2024-01-06",
-  },
-  {
-    id: 6,
-    name: "Timing Belt Kit",
-    price: 95000,
-    category: "Engine Parts",
-    stock: 1,
-    status: "active",
-    image: "/timing-belt.png",
-    sku: "TB-006",
-    createdAt: "2024-01-05",
-  },
-  {
-    id: 7,
-    name: "Brake Disc Rotor",
-    price: 65000,
-    category: "Brake System",
-    stock: 8,
-    status: "active",
-    image: "/brake-disc.png",
-    sku: "BD-007",
-    createdAt: "2024-01-04",
-  },
-  {
-    id: 8,
-    name: "Headlight Assembly",
-    price: 150000,
-    category: "Body Parts",
-    stock: 0,
-    status: "inactive",
-    image: "/placeholder-rxucr.png",
-    sku: "HL-008",
-    createdAt: "2024-01-03",
-  },
-]
+import api from "@/lib/api"
 
 export default function AdminProductsPage() {
+  const [products, setProducts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedProducts, setSelectedProducts] = useState<number[]>([])
   const [sortBy, setSortBy] = useState("name")
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get("/products");
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    const filtered = allProducts.filter((product) => {
+    const filtered = products.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -157,7 +80,7 @@ export default function AdminProductsPage() {
     })
 
     return filtered
-  }, [searchTerm, categoryFilter, statusFilter, sortBy])
+  }, [searchTerm, categoryFilter, statusFilter, sortBy, products])
 
   const categories = ["Brake System", "Filters", "Suspension", "Electrical", "Engine Parts", "Body Parts"]
 
@@ -183,9 +106,13 @@ export default function AdminProductsPage() {
     }
   }
 
-  const handleDeleteProduct = (productId: number) => {
-    // In a real app, this would make an API call
-    console.log("Deleting product:", productId)
+  const handleDeleteProduct = async (productId: number) => {
+    try {
+      await api.delete(`/products/${productId}`);
+      setProducts(products.filter((p) => p.id !== productId));
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+    }
   }
 
   const handleBulkAction = (action: string) => {
@@ -218,7 +145,7 @@ export default function AdminProductsPage() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{allProducts.length}</div>
+              <div className="text-2xl font-bold">{products.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -227,7 +154,7 @@ export default function AdminProductsPage() {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{allProducts.filter((p) => p.status === "active").length}</div>
+              <div className="text-2xl font-bold">{products.filter((p) => p.status === "active").length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -236,7 +163,7 @@ export default function AdminProductsPage() {
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{allProducts.filter((p) => p.stock <= 5).length}</div>
+              <div className="text-2xl font-bold">{products.filter((p) => p.stock <= 5).length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -245,7 +172,7 @@ export default function AdminProductsPage() {
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{allProducts.filter((p) => p.stock === 0).length}</div>
+              <div className="text-2xl font-bold">{products.filter((p) => p.stock === 0).length}</div>
             </CardContent>
           </Card>
         </div>

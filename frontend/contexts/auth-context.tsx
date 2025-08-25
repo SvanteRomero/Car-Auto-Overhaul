@@ -2,9 +2,8 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import api from '@/lib/api'; // <-- IMPORT OUR NEW API CLIENT
+import api from '@/lib/api';
 
-// User interface remains the same
 interface User {
   id: string
   name: string
@@ -26,9 +25,8 @@ interface RegisterData {
   name: string;
   email: string;
   password: string;
-  password_confirmation: string; // <-- Add password confirmation
+  password_confirmation: string;
 }
-
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -36,11 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // This effect will run when the app loads to check if the user is already logged in
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data } = await api.get('/user');
+        const { data } = await api.get('/api/user');
         setUser(data);
       } catch (error) {
         setUser(null);
@@ -54,15 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
-      // First, get a CSRF cookie from Sanctum
       await api.get('/sanctum/csrf-cookie');
       
-      // Now, attempt to log in
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/api/login', { email, password });
       
-      // After login, fetch the user data
-      const { data: userData } = await api.get('/user');
-      setUser(userData);
+      setUser(response.data);
       
       setIsLoading(false);
       return { success: true };
@@ -76,15 +69,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
         await api.get('/sanctum/csrf-cookie');
-        await api.post('/register', data);
+        await api.post('/api/register', data);
 
-        // After successful registration, automatically log the user in
         const loginResult = await login(data.email, data.password);
         return loginResult;
     } catch (error: any) {
         setIsLoading(false);
         const errorMessages = error.response?.data;
-        // Format validation errors nicely
         if (errorMessages && typeof errorMessages === 'object') {
             return { success: false, error: Object.values(errorMessages).flat().join(' ') };
         }
@@ -94,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-        await api.post('/logout');
+        await api.post('/api/logout');
     } catch (error) {
         console.error("Logout failed", error);
     } finally {
