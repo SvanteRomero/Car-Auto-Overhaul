@@ -13,11 +13,121 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { ShoppingCart, Filter } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import api from "@/lib/api"
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
-  const [products, setProducts] = useState<any[]>([])
+
+  const allProducts = [
+    {
+      id: 1,
+      name: "Toyota Hilux Brake Pads",
+      price: 85000,
+      image: "/brake-pads-auto-parts.png",
+      category: "Brake System",
+      make: "Toyota",
+      inStock: true,
+    },
+    {
+      id: 2,
+      name: "Honda Civic Oil Filter",
+      price: 25000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Filters",
+      make: "Honda",
+      inStock: true,
+    },
+    {
+      id: 3,
+      name: "Nissan Navara Shock Absorber",
+      price: 120000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Suspension",
+      make: "Nissan",
+      inStock: true,
+    },
+    {
+      id: 4,
+      name: "Universal LED Headlight",
+      price: 65000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Electrical",
+      make: "Universal",
+      inStock: false,
+    },
+    {
+      id: 5,
+      name: "Toyota Corolla Air Filter",
+      price: 18000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Filters",
+      make: "Toyota",
+      inStock: true,
+    },
+    {
+      id: 6,
+      name: "Mitsubishi L200 Clutch Kit",
+      price: 180000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Engine Parts",
+      make: "Mitsubishi",
+      inStock: true,
+    },
+    {
+      id: 7,
+      name: "Honda CR-V Radiator",
+      price: 95000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Cooling System",
+      make: "Honda",
+      inStock: true,
+    },
+    {
+      id: 8,
+      name: "Nissan X-Trail Brake Disc",
+      price: 75000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Brake System",
+      make: "Nissan",
+      inStock: true,
+    },
+    {
+      id: 9,
+      name: "Toyota Prado Fuel Filter",
+      price: 32000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Filters",
+      make: "Toyota",
+      inStock: true,
+    },
+    {
+      id: 10,
+      name: "Subaru Forester Alternator",
+      price: 145000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Electrical",
+      make: "Subaru",
+      inStock: false,
+    },
+    {
+      id: 11,
+      name: "Mazda CX-5 Timing Belt",
+      price: 55000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Engine Parts",
+      make: "Mazda",
+      inStock: true,
+    },
+    {
+      id: 12,
+      name: "Isuzu D-Max Leaf Spring",
+      price: 110000,
+      image: "/placeholder.svg?height=200&width=200",
+      category: "Suspension",
+      make: "Isuzu",
+      inStock: true,
+    },
+  ]
+
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("latest")
   const [priceRange, setPriceRange] = useState([0, 500000])
@@ -50,19 +160,6 @@ export default function ProductsPage() {
   const carMakes = ["Toyota", "Nissan", "Honda", "Mitsubishi", "Mazda", "Subaru", "Isuzu", "Ford"]
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get("/products");
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      }
-    };
-    fetchProducts();
-  }, []);
-
-
-  useEffect(() => {
     if (!hasInitialized) {
       const categoryParam = searchParams.get("category")
       const makeParam = searchParams.get("make")
@@ -81,7 +178,7 @@ export default function ProductsPage() {
 
       setHasInitialized(true)
     }
-  }, [hasInitialized, searchParams, categoryMapping, carMakes])
+  }, [hasInitialized]) // Only depend on hasInitialized flag instead of searchParams
 
   const handleCategoryChange = (category: string, checked: boolean) => {
     if (checked) {
@@ -106,7 +203,7 @@ export default function ProductsPage() {
     setPriceRange([0, 500000])
   }
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = allProducts.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category)
     const matchesMake = selectedMakes.length === 0 || selectedMakes.includes(product.make)
