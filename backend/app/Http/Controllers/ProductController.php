@@ -30,7 +30,10 @@ class ProductController extends Controller
         }
 
         if ($request->has('make')) {
-            $query->whereJsonContains('compatible_makes', $request->input('make'));
+            // Updated to use the new relationship
+            $query->whereHas('carMakes', function ($q) use ($request) {
+                $q->where('slug', $request->input('make'));
+            });
         }
 
         if ($request->has('price_range')) {
@@ -68,7 +71,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::where('status', 'active')->findOrFail($id);
+        $product = Product::with('carMakes')->where('status', 'active')->findOrFail($id);
 
         return response()->json($product);
     }
@@ -106,7 +109,7 @@ class ProductController extends Controller
      */
     public function adminIndex(Request $request)
     {
-        $query = Product::query();
+        $query = Product::with('carMakes');
 
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
@@ -161,7 +164,8 @@ class ProductController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'description' => 'nullable|string',
             'specifications' => 'nullable|array',
-            'compatible_makes' => 'nullable|array',
+            'car_make_ids' => 'nullable|array',
+            'car_make_ids.*' => 'exists:car_makes,id',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
@@ -174,7 +178,8 @@ class ProductController extends Controller
             }
         }
 
-        $product = Product::create(array_merge($request->all(), ['images' => $images]));
+        $product = Product::create(array_merge($request->except('car_make_ids'), ['images' => $images]));
+        $product->carMakes()->sync($request->input('car_make_ids'));
 
         return response()->json($product, 201);
     }
@@ -199,8 +204,9 @@ class ProductController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'description' => 'nullable|string',
             'specifications' => 'nullable|array',
-            'compatible_makes' => 'nullable|array',
-            'images' => 'nullable|array',
+            'car_make_ids' => 'nullable|array',
+            'car_make_ids.*' => 'exists:car_makes,id',
+            'images' => 'nullable|array', 
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 
@@ -212,7 +218,8 @@ class ProductController extends Controller
             }
         }
 
-        $product->update(array_merge($request->except('images'), ['images' => $images]));
+        $product->update(array_merge($request->except('car_make_ids', 'images'), ['images' => $images]));
+        $product->carMakes()->sync($request->input('car_make_ids'));
 
         return response()->json($product);
     }

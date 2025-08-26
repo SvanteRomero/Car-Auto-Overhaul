@@ -19,7 +19,6 @@ class Product extends Model
         'status',
         'description',
         'specifications',
-        'compatible_makes',
         'images',
         'rating',
         'reviews',
@@ -30,11 +29,18 @@ class Product extends Model
         'original_price' => 'integer',
         'stock' => 'integer',
         'images' => 'json',
-        'compatible_makes' => 'json',
         'specifications' => 'json',
         'rating' => 'float',
         'reviews' => 'integer',
     ];
 
     protected $table = 'products';
+
+    /**
+     * Get the car makes compatible with this product.
+     */
+    public function carMakes()
+    {
+        return $this->belongsToMany(CarMake::class);
+    }
 }

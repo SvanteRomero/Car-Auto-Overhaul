@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('status')->default('active');
             $table->text('description')->nullable();
             $table->json('specifications')->nullable();
-            $table->json('compatible_makes')->nullable();
             $table->json('images')->nullable();
             $table->decimal('rating', 3, 2)->nullable();
             $table->integer('reviews')->nullable();
