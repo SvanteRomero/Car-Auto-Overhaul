@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +18,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::where('status', 'active');
+        $query = Product::with('category')->where('status', 'active');
 
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
@@ -26,11 +27,13 @@ class ProductController extends Controller
         }
 
         if ($request->has('category')) {
-            $query->where('category', $request->input('category'));
+            // Filter by category slug instead of name
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->input('category'));
+            });
         }
 
         if ($request->has('make')) {
-            // Updated to use the new relationship
             $query->whereHas('carMakes', function ($q) use ($request) {
                 $q->where('slug', $request->input('make'));
             });
@@ -71,7 +74,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::with('carMakes')->where('status', 'active')->findOrFail($id);
+        $product = Product::with(['category', 'carMakes'])->where('status', 'active')->findOrFail($id);
 
         return response()->json($product);
     }
@@ -83,7 +86,7 @@ class ProductController extends Controller
      */
     public function categories()
     {
-        $categories = Product::distinct('category')->pluck('category');
+        $categories = Category::all();
 
         return response()->json($categories);
     }
@@ -109,7 +112,7 @@ class ProductController extends Controller
      */
     public function adminIndex(Request $request)
     {
-        $query = Product::with('carMakes');
+        $query = Product::with('category', 'carMakes');
 
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
@@ -118,7 +121,9 @@ class ProductController extends Controller
         }
 
         if ($request->has('category')) {
-            $query->where('category', $request->input('category'));
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('name', $request->input('category'));
+            });
         }
 
         if ($request->has('status')) {
@@ -158,7 +163,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'required|string|unique:products,sku',
-            'category' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::in(['active', 'inactive'])],
@@ -198,7 +203,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'required|string|unique:products,sku,' . $product->id,
-            'category' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => ['required', Rule::in(['active', 'inactive'])],
@@ -206,7 +211,7 @@ class ProductController extends Controller
             'specifications' => 'nullable|array',
             'car_make_ids' => 'nullable|array',
             'car_make_ids.*' => 'exists:car_makes,id',
-            'images' => 'nullable|array', 
+            'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 

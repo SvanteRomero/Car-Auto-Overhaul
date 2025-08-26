@@ -8,14 +8,13 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CarMakesController;
 
 /*
 |--------------------------------------------------------------------------
 | Public Routes
 |--------------------------------------------------------------------------
-|
-| These routes are accessible to all users, whether they are authenticated or not.
-|
 */
 
 // Authentication
@@ -27,16 +26,13 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
 // Categories and Makes (for dynamic menus and filters)
-Route::get('/categories', [ProductController::class, 'categories']);
-Route::get('/makes', [ProductController::class, 'makes']);
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/car-makes', [CarMakesController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
 | Authenticated User Routes
 |--------------------------------------------------------------------------
-|
-| These routes require the user to be authenticated with a Sanctum token.
-|
 */
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -62,10 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 | Admin Routes
 |--------------------------------------------------------------------------
-|
-| These routes are for administrators only and are protected by authentication
-| and the `is_admin` middleware.
-|
 */
 
 Route::middleware(['auth:sanctum', 'is_admin'])->prefix('admin')->group(function () {
@@ -77,8 +69,18 @@ Route::middleware(['auth:sanctum', 'is_admin'])->prefix('admin')->group(function
     Route::post('/products', [ProductController::class, 'store']);
     Route::post('/products/bulk-actions', [ProductController::class, 'bulkActions']);
     Route::get('/products/{id}', [ProductController::class, 'adminShow']);
-    Route::post('/products/{id}', [ProductController::class, 'update']); // Using POST for file uploads
+    Route::post('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+    // Category Management
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::put('/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+    // Car Make Management
+    Route::post('/car-makes', [CarMakesController::class, 'store']);
+    Route::put('/car-makes/{id}', [CarMakesController::class, 'update']);
+    Route::delete('/car-makes/{id}', [CarMakesController::class, 'destroy']);
 
     // User Management
     Route::get('/users', [UserController::class, 'adminIndex']);
