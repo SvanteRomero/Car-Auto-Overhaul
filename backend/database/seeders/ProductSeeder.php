@@ -23,10 +23,7 @@ class ProductSeeder extends Seeder
         $suspensionCategory = $categories->firstWhere('name', 'Suspension');
         $engineCategory = $categories->firstWhere('name', 'Engine Parts');
         $electricalCategory = $categories->firstWhere('name', 'Electrical');
-        $bodyCategory = $categories->firstWhere('name', 'Body Parts');
-        $coolingCategory = $categories->firstWhere('name', 'Cooling System');
-        $transmissionCategory = $categories->firstWhere('name', 'Transmission');
-
+        
         // Mock Products
         $productsData = [
             [
