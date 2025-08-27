@@ -12,41 +12,30 @@ class Product extends Model
     protected $fillable = [
         'name',
         'sku',
-        'category_id',
         'price',
-        'original_price',
         'stock',
         'status',
         'description',
-        'specifications',
         'images',
         'rating',
         'reviews',
+        'category_id',
     ];
-
-    protected $casts = [
-        'price' => 'integer',
-        'original_price' => 'integer',
-        'stock' => 'integer',
-        'images' => 'json',
-        'specifications' => 'json',
-        'rating' => 'float',
-        'reviews' => 'integer',
-    ];
-
-    protected $table = 'products';
 
     /**
-     * Get the category that owns the product.
+     * The attributes that should be cast.
+     *
+     * @var array
      */
+    protected $casts = [
+        'images' => 'array', // **FIX:** Add this cast
+    ];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Get the car makes compatible with this product.
-     */
     public function carMakes()
     {
         return $this->belongsToMany(CarMake::class);

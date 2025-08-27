@@ -24,7 +24,7 @@ class ProductController extends Controller
         if ($request->has('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('sku', 'like', '%' . $request->search . '%');
+                  ->orWhere('sku', 'like', '%' . $request->search . '%');
             });
         }
 
@@ -214,8 +214,16 @@ class ProductController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 
-        $images = $product->images;
+        $images = $product->images ?? [];
         if ($request->hasFile('images')) {
+            // Delete old images before uploading new ones
+            if (!empty($product->images)) {
+                foreach ($product->images as $oldImagePath) {
+                    $relativePath = str_replace(Storage::url(''), '', $oldImagePath);
+                    Storage::disk('public')->delete($relativePath);
+                }
+            }
+            $images = []; // Reset array for new images
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
                 $images[] = Storage::url($path);
@@ -237,6 +245,15 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+        
+        // Delete the product's images from storage
+        if (!empty($product->images)) {
+            foreach ($product->images as $imagePath) {
+                $relativePath = str_replace(Storage::url(''), '', $imagePath);
+                Storage::disk('public')->delete($relativePath);
+            }
+        }
+        
         $product->delete();
 
         return response()->json(null, 204);
@@ -260,7 +277,17 @@ class ProductController extends Controller
         $productIds = $request->input('product_ids');
 
         if ($action === 'delete') {
-            Product::whereIn('id', $productIds)->delete();
+            $products = Product::whereIn('id', $productIds)->get();
+            foreach ($products as $product) {
+                // Delete associated images from storage
+                if (!empty($product->images)) {
+                    foreach ($product->images as $imagePath) {
+                        $relativePath = str_replace(Storage::url(''), '', $imagePath);
+                        Storage::disk('public')->delete($relativePath);
+                    }
+                }
+                $product->delete();
+            }
         } else {
             $status = $action === 'activate' ? 'active' : 'inactive';
             Product::whereIn('id', $productIds)->update(['status' => $status]);
