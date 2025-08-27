@@ -13,19 +13,23 @@ class CartItem extends Model
         'cart_id',
         'product_id',
         'quantity',
+        'reserved_at', // Add reserved_at to fillable
     ];
 
     /**
-     * Get the cart that the item belongs to.
+     * The attributes that should be cast.
+     *
+     * @var array
      */
+    protected $casts = [
+        'reserved_at' => 'datetime',
+    ];
+
     public function cart()
     {
         return $this->belongsTo(Cart::class);
     }
 
-    /**
-     * Get the product associated with the cart item.
-     */
     public function product()
     {
         return $this->belongsTo(Product::class);
