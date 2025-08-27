@@ -15,7 +15,6 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('sku')->unique();
-            $table->string('category');
             $table->integer('price');
             $table->integer('original_price')->nullable();
             $table->integer('stock');

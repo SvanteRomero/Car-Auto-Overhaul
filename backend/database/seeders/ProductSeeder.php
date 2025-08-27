@@ -23,7 +23,10 @@ class ProductSeeder extends Seeder
         $suspensionCategory = $categories->firstWhere('name', 'Suspension');
         $engineCategory = $categories->firstWhere('name', 'Engine Parts');
         $electricalCategory = $categories->firstWhere('name', 'Electrical');
-        
+        $bodyCategory = $categories->firstWhere('name', 'Body Parts');
+        $coolingCategory = $categories->firstWhere('name', 'Cooling System');
+        $transmissionCategory = $categories->firstWhere('name', 'Transmission');
+
         // Mock Products
         $productsData = [
             [
@@ -128,9 +131,15 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($productsData as $data) {
+            // Retrieve and remove the 'makes' key from the data array
+            $makes = $data['makes'];
+            unset($data['makes']);
+            
+            // Create the product
             $product = Product::create($data);
             
-            $makesToAttach = CarMake::whereIn('name', $data['makes'])->pluck('id');
+            // Get the IDs of the car makes and attach them to the product
+            $makesToAttach = CarMake::whereIn('name', $makes)->pluck('id');
             $product->carMakes()->attach($makesToAttach);
         }
     }
