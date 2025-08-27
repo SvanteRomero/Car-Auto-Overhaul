@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Cart extends Model
 {
@@ -14,7 +16,7 @@ class Cart extends Model
     /**
      * Get the user that owns the cart.
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -22,7 +24,7 @@ class Cart extends Model
     /**
      * Get the cart items for the cart.
      */
-    public function items()
+    public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
     }
