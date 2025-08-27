@@ -9,7 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CarMakesController;
+use App\Http\Controllers\CarMakesController;  
 
 /*
 |--------------------------------------------------------------------------

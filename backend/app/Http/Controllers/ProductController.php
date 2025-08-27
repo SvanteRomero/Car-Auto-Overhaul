@@ -16,36 +16,38 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
+
     public function index(Request $request)
     {
-        $query = Product::with('category')->where('status', 'active');
+        $query = Product::with('category', 'carMakes')->where('status', 'active');
 
         if ($request->has('search')) {
-            $searchTerm = $request->input('search');
-            $query->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('sku', 'like', "%{$searchTerm}%");
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('sku', 'like', '%' . $request->search . '%');
+            });
         }
 
         if ($request->has('category')) {
-            // Filter by category slug instead of name
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->input('category'));
+            $query->whereHas('category', function($q) use ($request) {
+                $q->where('slug', $request->category);
             });
         }
 
         if ($request->has('make')) {
-            $query->whereHas('carMakes', function ($q) use ($request) {
-                $q->where('slug', $request->input('make'));
+            $query->whereHas('carMakes', function($q) use ($request) {
+                $q->where('slug', $request->make);
             });
         }
-
-        if ($request->has('price_range')) {
-            $priceRange = explode(',', $request->input('price_range'));
-            $query->whereBetween('price', [$priceRange[0], $priceRange[1]]);
+        
+        // Add price filtering logic
+        if ($request->has(['min_price', 'max_price'])) {
+            $query->whereBetween('price', [$request->min_price, $request->max_price]);
         }
 
+
         if ($request->has('sort_by')) {
-            switch ($request->input('sort_by')) {
+            switch ($request->sort_by) {
                 case 'price-low':
                     $query->orderBy('price', 'asc');
                     break;
@@ -55,13 +57,10 @@ class ProductController extends Controller
                 case 'rating':
                     $query->orderBy('rating', 'desc');
                     break;
-                default:
-                    $query->orderBy('created_at', 'desc');
-                    break;
             }
         }
 
-        $products = $query->paginate(9);
+        $products = $query->paginate(12);
 
         return response()->json($products);
     }
